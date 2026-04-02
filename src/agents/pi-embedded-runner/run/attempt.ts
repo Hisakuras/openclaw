@@ -29,7 +29,7 @@ import { resolveUserPath } from "../../../utils.js";
 import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
 import { resolveOpenClawAgentDir } from "../../agent-paths.js";
-import { resolveSessionAgentIds } from "../../agent-scope.js";
+import { resolveAgentConfig, resolveSessionAgentIds } from "../../agent-scope.js";
 import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
 import { createAnthropicVertexStreamFnForModel } from "../../anthropic-vertex-stream.js";
 import {
@@ -884,6 +884,23 @@ export async function runEmbeddedAttempt(
         throw new Error("Embedded agent session missing");
       }
       const activeSession = session;
+      // maxTurns enforcement: count completed assistant turns and block if limit reached
+      const agentMaxTurns = resolveAgentConfig(params.config, sessionAgentId)?.maxTurns;
+      if (agentMaxTurns) {
+        const completedAssistantTurns = activeSession.messages.filter(
+          (m) => m.role === "assistant",
+        ).length;
+        if (completedAssistantTurns >= agentMaxTurns) {
+          throw Object.assign(
+            new Error(
+              `Agent turn limit reached (${completedAssistantTurns}/${agentMaxTurns}). ` +
+                `Use /new to start a fresh session or increase maxTurns in agent config.`,
+            ),
+            { code: "AGENT_MAX_TURNS_EXCEEDED" },
+          );
+        }
+      }
+
       abortSessionForYield = () => {
         yieldAbortSettled = Promise.resolve(activeSession.abort());
       };

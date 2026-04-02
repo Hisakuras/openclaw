@@ -18,6 +18,13 @@ export const AgentDefaultsSchema = z
   .object({
     /** Global default provider params applied to all models before per-model and per-agent overrides. */
     params: z.record(z.string(), z.unknown()).optional(),
+    effort: z.enum(["low", "medium", "high"]).optional(),
+    maxTurns: z.number().int().positive().optional(),
+    omitGitStatus: z.boolean().optional(),
+    omitClaudeMd: z.boolean().optional(),
+    hooks: z.array(z.string()).optional(),
+    permissionMode: z.enum(["auto", "bubble", "bypass"]).optional(),
+    skills: z.array(z.string()).optional(),
     model: AgentModelSchema.optional(),
     imageModel: AgentModelSchema.optional(),
     imageGenerationModel: AgentModelSchema.optional(),

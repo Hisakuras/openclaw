@@ -441,6 +441,8 @@ const ToolExecBaseShape = {
   notifyOnExit: z.boolean().optional(),
   notifyOnExitEmptySuccess: z.boolean().optional(),
   applyPatch: ToolExecApplyPatchSchema,
+  workspaceOnly: z.boolean().optional(),
+  denyPatterns: z.array(z.string()).optional(),
 } as const;
 
 const AgentToolExecSchema = z
@@ -576,6 +578,8 @@ export const AgentToolsSchema = z
     exec: AgentToolExecSchema,
     fs: ToolFsSchema,
     loopDetection: ToolLoopDetectionSchema,
+    autoCompactThreshold: z.number().int().positive().optional(),
+    proactiveCompact: z.boolean().optional(),
     sandbox: z
       .object({
         tools: ToolPolicySchema,
@@ -785,6 +789,12 @@ export const AgentEntrySchema = z
       .optional(),
     reasoningDefault: z.enum(["on", "off", "stream"]).optional(),
     fastModeDefault: z.boolean().optional(),
+    effort: z.enum(["low", "medium", "high"]).optional(),
+    maxTurns: z.number().int().positive().optional(),
+    omitGitStatus: z.boolean().optional(),
+    omitClaudeMd: z.boolean().optional(),
+    hooks: z.array(z.string()).optional(),
+    permissionMode: z.enum(["auto", "bubble", "bypass"]).optional(),
     skills: z.array(z.string()).optional(),
     memorySearch: MemorySearchSchema,
     humanDelay: HumanDelaySchema.optional(),
@@ -807,6 +817,11 @@ export const AgentEntrySchema = z
           .optional(),
         thinking: z.string().optional(),
         requireAgentId: z.boolean().optional(),
+        maxConcurrent: z.number().int().nonnegative().optional(),
+        forkEnabled: z.boolean().optional(),
+        bubblePrompts: z.boolean().optional(),
+        canShowPermissionPrompts: z.boolean().optional(),
+        allowTools: z.array(z.string()).optional(),
       })
       .strict()
       .optional(),
@@ -876,6 +891,12 @@ export const ToolsSchema = z
     subagents: z
       .object({
         tools: ToolPolicySchema,
+        allowAgents: z.array(z.string()).optional(),
+        maxConcurrent: z.number().int().nonnegative().optional(),
+        forkEnabled: z.boolean().optional(),
+        bubblePrompts: z.boolean().optional(),
+        canShowPermissionPrompts: z.boolean().optional(),
+        allowTools: z.array(z.string()).optional(),
       })
       .strict()
       .optional(),
